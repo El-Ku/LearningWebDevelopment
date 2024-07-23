@@ -49,3 +49,7 @@ body {
   display: flex;
   align-items: center;
 }
+
+#play-recording {
+  margin-left: 50%;
+}

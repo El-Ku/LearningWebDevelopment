@@ -18,11 +18,22 @@ document.getElementById("select-folder").addEventListener("click", async () => {
 
 class RecorderClass {
   constructor() {
+    this.recordedData = [];
     this.checkbox = document.getElementById("enable-recording");
+    const bottomTimeline = WaveSurfer.Timeline.create({
+      height: 10,
+      timeInterval: 0.1,
+      primaryLabelInterval: 1,
+      style: {
+        fontSize: "10px",
+        color: "#6A3274",
+      },
+    });
     this.recordedWaveSurfer = WaveSurfer.create({
       container: "#recorded-waveform",
       waveColor: "green",
       progressColor: "red",
+      plugins: [bottomTimeline],
     });
   }
 
@@ -31,30 +42,55 @@ class RecorderClass {
       audio: true,
     });
     this.mediaRecorder = new MediaRecorder(mediaStream);
-    this.chunks = [];
   }
 
-  onAudioFinish() {
+  async onAudioFinish() {
     if (this.checkbox.checked) {
       this.mediaRecorder.stop();
-      this.mediaRecorder.ondataavailable = (e) => {
-        this.chunks.push(e.data);
-        const blob = new Blob(this.chunks, { type: "audio/wav" });
-        this.chunks = [];
+      this.mediaRecorder.ondataavailable = async (e) => {
+        const blob = new Blob([e.data], { type: "audio/wav" });
         const url = URL.createObjectURL(blob);
         this.recordedWaveSurfer.load(url);
+        await this.getSamplingFrequency(blob);
       };
     } else return;
   }
+
+  async getSamplingFrequency(blob) {
+    const arrayBuffer = await blob.arrayBuffer();
+    const audioContext = new AudioContext();
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    this.recordedData = audioBuffer.getChannelData(0);
+    // console.log(Math.max(...oldData), Math.min(...oldData));
+    // console.log(audioBuffer.numberOfChannels);
+    // const newData = audioBuffer.getChannelData(0).map((x) => x * 1000.0);
+    // console.log(Math.max(...newData), Math.min(...newData));
+    // console.log(audioBuffer, newData);
+    // audioBuffer.copyToChannel(newData, 0);
+    // return audioBuffer.sampleRate;
+  }
+
+  async playRecordedAudio() {}
 }
 class AudioPlayer {
   constructor(recorder) {
     this.checkbox = document.getElementById("enable-recording");
     this.mediaRecorder = recorder;
+    // Create a timeline plugin instance with custom options
+    const bottomTimeline = WaveSurfer.Timeline.create({
+      height: 10,
+      timeInterval: 0.1,
+      primaryLabelInterval: 1,
+      style: {
+        fontSize: "10px",
+        color: "#6A3274",
+      },
+    });
     this.waveSurfer = WaveSurfer.create({
       container: "#waveform-container",
       waveColor: "red",
       progressColor: "green",
+      plugins: [bottomTimeline],
     });
     this.waveSurfer.setVolume(0.05);
   }
@@ -68,10 +104,10 @@ class AudioPlayer {
       document.getElementById(
         "current-file"
       ).value = `Loaded file: ${file.name}`;
-      console.log("ASA");
       //the 'await' below is super-important. without which it doesnt work.
       await this.waveSurfer.load(url);
       await this.waveSurfer.play();
+      if (this.checkbox.checked) this.mediaRecorder.mediaRecorder.start();
     }
   }
 
@@ -139,5 +175,10 @@ document.getElementById("next-file").addEventListener("click", async () => {
 document.getElementById("vol-slider").addEventListener("input", (event) => {
   audioPlayer.setVolume(event.target.value);
 });
+document
+  .getElementById("play-recording")
+  .addEventListener("click", async () => {
+    await recorder.playRecordedAudio();
+  });
 
-audioPlayer.waveSurfer.on("finish", () => recorder.onAudioFinish());
+audioPlayer.waveSurfer.on("finish", async () => await recorder.onAudioFinish());
