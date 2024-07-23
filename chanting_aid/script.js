@@ -31,15 +31,22 @@ class RecorderClass {
     });
     this.recordedWaveSurfer = WaveSurfer.create({
       container: "#recorded-waveform",
+      height: "auto",
       waveColor: "green",
       progressColor: "red",
       plugins: [bottomTimeline],
     });
+    this.recordedWaveSurfer.setVolume(0.05);
   }
 
   async initMediaRecorder() {
     const mediaStream = await navigator.mediaDevices.getUserMedia({
-      audio: true,
+      audio: {
+        channels: 2,
+        autoGainControl: false,
+        echoCancellation: false,
+        noiseSuppression: false,
+      },
     });
     this.mediaRecorder = new MediaRecorder(mediaStream);
   }
@@ -50,27 +57,22 @@ class RecorderClass {
       this.mediaRecorder.ondataavailable = async (e) => {
         const blob = new Blob([e.data], { type: "audio/wav" });
         const url = URL.createObjectURL(blob);
+        // console.log(e.data, blob);
         this.recordedWaveSurfer.load(url);
-        await this.getSamplingFrequency(blob);
+        this.recordedData = blob;
       };
     } else return;
   }
 
-  async getSamplingFrequency(blob) {
-    const arrayBuffer = await blob.arrayBuffer();
-    const audioContext = new AudioContext();
-    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-    this.recordedData = audioBuffer.getChannelData(0);
-    // console.log(Math.max(...oldData), Math.min(...oldData));
-    // console.log(audioBuffer.numberOfChannels);
-    // const newData = audioBuffer.getChannelData(0).map((x) => x * 1000.0);
-    // console.log(Math.max(...newData), Math.min(...newData));
-    // console.log(audioBuffer, newData);
-    // audioBuffer.copyToChannel(newData, 0);
-    // return audioBuffer.sampleRate;
+  async playRecordedAudio() {
+    const url = URL.createObjectURL(this.recordedData);
+    await this.recordedWaveSurfer.load(url);
+    await this.recordedWaveSurfer.play();
   }
 
-  async playRecordedAudio() {}
+  setVolume(volume) {
+    this.recordedWaveSurfer.setVolume(volume);
+  }
 }
 class AudioPlayer {
   constructor(recorder) {
@@ -88,6 +90,7 @@ class AudioPlayer {
     });
     this.waveSurfer = WaveSurfer.create({
       container: "#waveform-container",
+      height: "auto",
       waveColor: "red",
       progressColor: "green",
       plugins: [bottomTimeline],
@@ -100,6 +103,7 @@ class AudioPlayer {
     const fileHandle = fileNames[fileIndex];
     if (fileHandle) {
       const file = await fileHandle.getFile();
+      //   console.log(file);
       const url = URL.createObjectURL(file);
       document.getElementById(
         "current-file"
@@ -174,6 +178,7 @@ document.getElementById("next-file").addEventListener("click", async () => {
 });
 document.getElementById("vol-slider").addEventListener("input", (event) => {
   audioPlayer.setVolume(event.target.value);
+  recorder.setVolume(event.target.value);
 });
 document
   .getElementById("play-recording")
