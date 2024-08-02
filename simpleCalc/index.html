@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="calculator">
+        <input type="text" id="display" placeholder="You can also enter your own JS expression here">
+        <div class="all-buttons">
+            <div class="row-btn">
+                <button class="operator" onclick="appendToDisplay('^')"
+                    title="x to the power of y">x<sup>y</sup></button>
+                <button class="operator" onclick="clearEntry()" title="Clear last entry">CE</button>
+                <button class="operator" onclick="clearAll()" title="Clear all">C</button>
+                <button class="operator" onclick="deleteLast()" title="Delete last character">DEL</button>
+                <button class="operator" onclick="appendToDisplay('/')" title="division">/</button>
+            </div>
+
+            <div class="row-btn">
+                <button class="operator" onclick="appendToDisplay('√')" title="Square root">√</button>
+                <button onclick="appendToDisplay('7')">7</button>
+                <button onclick="appendToDisplay('8')">8</button>
+                <button onclick="appendToDisplay('9')">9</button>
+                <button class="operator" onclick="appendToDisplay('*')" title="multiplication">*</button>
+            </div>
+            <div class="row-btn">
+                <button class="operator" onclick="appendToDisplay('sin')" title="in radians">sin</button>
+                <button onclick="appendToDisplay('4')">4</button>
+                <button onclick="appendToDisplay('5')">5</button>
+                <button onclick="appendToDisplay('6')">6</button>
+                <button class="operator" onclick="appendToDisplay('-')" title="subtraction">-</button>
+            </div>
+            <div class="row-btn">
+                <button class="operator" onclick="appendToDisplay('cos')" title="in radians">cos</button>
+                <button onclick="appendToDisplay('1')">1</button>
+                <button onclick="appendToDisplay('2')">2</button>
+                <button onclick="appendToDisplay('3')">3</button>
+                <button class="operator" onclick="appendToDisplay('+')" title="addition">+</button>
+            </div>
+            <div class="row-btn">
+                <button class="operator" onclick="appendToDisplay('(')">(</button>
+                <button class="operator" onclick="appendToDisplay(')')">)</button>
+                <button class="equals" onclick="calculateResult()" title="Calculate result">=</button>
+                <button onclick="appendToDisplay('0')" class="zero">0</button>
+                <button onclick="appendToDisplay('.')">.</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
